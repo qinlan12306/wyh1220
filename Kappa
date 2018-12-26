@@ -1,0 +1,32 @@
+'''
+Kappa  = (RPA-PRE)/(1-PRE)
+Kappa(groundtruth,out)
+input.size=(c,w,h)
+'''
+import PIL.Image as Image
+from torchvision import transforms as T
+
+def Kappa(groundtruth,out):
+    c,w,h = out.size()
+    TP=0
+    FP=0
+    FN=0
+    TN=0
+    for z in range(c):
+        for i in range(w):
+            for j in range(h):
+                if groundtruth[z,i,j]==1 and out[z,i,j]==1:
+                    TP+=1
+                elif 0==groundtruth[z,i,j]and 0==out[z,i,j]:
+                    TN+=1
+                elif 1==groundtruth[z,i,j]and 0==out[z,i,j]:
+                    FN+=1  #漏检
+                elif 0==groundtruth[z,i,j]and 1==out[z,i,j]:
+                    FP+=1  #虚警
+    Nu = FP+TN  #label中所有未变化
+    Nc = FN+TP  #label中所有变化的
+    RPA = (TP+TN)/(TP+FP+FN+TN)  #检测正确的概率
+    PRE = ((TP+FP)*Nc+(FN+TN)*Nu)/(TP+FP+FN+TN)**2
+    
+    Kappa = (RPA-PRE)/(1-PRE)
+    return Kappa
